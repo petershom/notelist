@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ArrayAdapter
-import androidx.appcompat.content.res.AppCompatResources
 import com.example.myapplication.databinding.ActivityMainBinding
 
 
@@ -24,12 +23,22 @@ class MainActivity : AppCompatActivity() {
 
         binding.spinnerCourses.adapter = adapterCourses
 
-        notePosition = intent.getIntExtra(EXTRA_NOTE_POSITION, POSITION_NOT_SET)
+        notePosition = savedInstanceState?.getInt(NOTE_POSITION, POSITION_NOT_SET) ?:
+                intent.getIntExtra(NOTE_POSITION, POSITION_NOT_SET)
 
         if (notePosition != POSITION_NOT_SET)
             displayNote()
-
+        else {
+            DataManager.notes.add(NoteInfo())
+            notePosition = DataManager.notes.lastIndex
+        }
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(NOTE_POSITION,notePosition)
+    }
+
     private fun displayNote() {
         val note = DataManager.notes[notePosition]
         binding.textNoteTitle.setText(note.title)
@@ -58,14 +67,15 @@ class MainActivity : AppCompatActivity() {
     private fun moveNext(): Boolean {
         ++notePosition
         displayNote()
+        invalidateOptionsMenu()
         return false
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        if (notePosition != DataManager.notes.lastIndex){
-            val menuItem = menu?.findItem(R.menu.example_menu)
-            if (menuItem != null){
-                menuItem.icon = getDrawable(R.drawable.ic_baseline_forward_24)
+        if (notePosition >= DataManager.notes.lastIndex) {
+            val menuItem = menu.findItem(R.id.action_next)
+            if (menuItem != null) {
+                menuItem.icon = getDrawable(R.drawable.ic_baseline_block_24)
                 menuItem.isEnabled = false
             }
         }
@@ -74,6 +84,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        saveNote()
     }
 
+    private fun saveNote() {
+        val note = DataManager.notes[notePosition]
+        note.title = binding.textNoteTitle.text.toString()
+        note.text = binding.textNoteText.text.toString()
+        note.course = binding.spinnerCourses.selectedItem as CourseInfo
+    }
 }

@@ -4,12 +4,7 @@ import android.R
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.myapplication.databinding.ActivityNoteListBinding
 
 class NoteListActivity : AppCompatActivity() {
@@ -34,10 +29,14 @@ class NoteListActivity : AppCompatActivity() {
 
         binding.listNote.setOnItemClickListener {parent, view, position, id->
             val activityIntent = Intent( this, MainActivity::class.java)
-            activityIntent.putExtra(EXTRA_NOTE_POSITION, position)
+            activityIntent.putExtra(NOTE_POSITION, position)
             startActivity(activityIntent)
         }
 
     }
 
+    override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
+        (binding.listNote.adapter as ArrayAdapter<NoteInfo>).notifyDataSetChanged()
+        super.onTopResumedActivityChanged(isTopResumedActivity)
+    }
 }
